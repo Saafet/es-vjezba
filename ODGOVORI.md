@@ -31,6 +31,7 @@ _score je mjera relevantnosti dokumenta za zadani upit, izračunata BM25 algorit
 ## Zadatak 5
 
 1. tokeni na drini cuprija
+
 {
   "tokens": [
     {
