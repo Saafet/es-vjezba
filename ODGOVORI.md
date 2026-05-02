@@ -17,4 +17,3 @@ Jer ih uvijek pretražujemo po točnoj vrijednosti (npr. točan autor "Ivo Andri
 
 4 pitanje:
 Opis se ne bi trebao spremati kao keyword zato sto se radi o dugackom tekstu gdje s druge strane nema smisla da bude keyword, jer pogodan je za full text search
-
