@@ -17,3 +17,11 @@ Jer ih uvijek pretražujemo po točnoj vrijednosti (npr. točan autor "Ivo Andri
 
 4 pitanje:
 Opis se ne bi trebao spremati kao keyword zato sto se radi o dugackom tekstu gdje s druge strane nema smisla da bude keyword, jer pogodan je za full text search
+
+## Zadatak 3
+
+1. pitanje:
+Jer indeks koristi hrvatski_analyzer s asciifolding filterom koji pretvara dijakritike u ASCII ekvivalente. Kad se dokument indeksira gdjes e "ćuprija" sprema kao token "cuprija". Kad pretražujemo "cuprija" query prolazi kroz isti analyzer i traži token cuprija koji se podudara.
+
+2. pitanje:
+_score je mjera relevantnosti dokumenta za zadani upit, izračunata BM25 algoritmom. Uzima u obzir koliko često se pojam pojavljuje u dokumentu i koliko je rijedak u cijelom indeksu. Dokumenti koji sadrže traženi pojam vise puta ili u kracem tekstu dobivaju visi score.
