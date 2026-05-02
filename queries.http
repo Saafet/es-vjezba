@@ -1,0 +1,370 @@
+### Zadatak 1 — Provjera okruženja
+GET http://localhost:9200
+
+###
+GET http://localhost:9200/_cat/health?v
+
+###
+GET http://localhost:9200/_cat/indices?v
+
+### Korak 2 — Kreiranje indeksa s mappingom
+
+PUT /knjige
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "hrvatski_analyzer": {
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "naslov": {
+        "type": "text",
+        "analyzer": "hrvatski_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "autor": { "type": "keyword" },
+      "zanr": { "type": "keyword" },
+      "opis": {
+        "type": "text",
+        "analyzer": "hrvatski_analyzer"
+      },
+      "godina": { "type": "integer" },
+      "cijena": { "type": "double" },
+      "dostupno": { "type": "boolean" }
+    }
+  }
+}
+### Korak 3 — Unos podataka pomoću Bulk API-ja
+GET /knjige/_count
+
+POST /knjige/_bulk
+{ "index": { "_id": "1" } }
+{ "naslov": "Na Drini ćuprija", "autor": "Ivo Andrić", "zanr": "roman", "opis": "Povijesni roman o mostu, ljudima i vremenu.", "godina": 1945, "cijena": 18.50, "dostupno": true }
+{ "index": { "_id": "2" } }
+{ "naslov": "Derviš i smrt", "autor": "Meša Selimović", "zanr": "roman", "opis": "Filozofski roman o vlasti, pravdi i ljudskoj sudbini.", "godina": 1966, "cijena": 22.00, "dostupno": true }
+{ "index": { "_id": "3" } }
+{ "naslov": "Tvrđava", "autor": "Meša Selimović", "zanr": "roman", "opis": "Roman o čovjeku, društvu i borbi za smisao.", "godina": 1970, "cijena": 20.00, "dostupno": false }
+{ "index": { "_id": "4" } }
+{ "naslov": "Travnička hronika", "autor": "Ivo Andrić", "zanr": "povijesni roman", "opis": "Priča o diplomatskom i društvenom životu u Travniku.", "godina": 1942, "cijena": 19.90, "dostupno": true }
+{ "index": { "_id": "5" } }
+{ "naslov": "Zločin i kazna", "autor": "Fjodor Dostojevski", "zanr": "roman", "opis": "Psihološki roman o krivnji, savjesti i iskupljenju.", "godina": 1866, "cijena": 24.50, "dostupno": true }
+
+### Korak 4 — Full-text pretraga (match query)
+
+Pretraga po naslovu:
+GET /knjige/_search
+{
+  "query": {
+    "match": {
+      "naslov": "cuprija"
+    }
+  }
+}
+
+GET /knjige/_search
+{
+  "query": {
+    "match": {
+      "opis": "pravda vlast sudbina"
+    }
+  }
+}
+
+### Zadatak 3 — Match query
+1.	pronaći knjige koje u opisu imaju pojam roman
+GET /knjige/_search
+{
+  "query": {
+    "match": {
+      "opis": "roman"
+    }
+  }
+}
+2. pronaći knjige povezane s pojmovima pravda i sudbina
+GET /knjige/_search
+{
+  "query": {
+    "match": {
+      "opis": "pravda sudbina"
+    }
+  }
+}
+
+### Korak 5 — Term, range i bool query
+
+Term
+GET /knjige/_search
+{
+  "query": {
+    "term": {
+      "autor": "Ivo Andrić"
+    }
+  }
+}
+
+Range 
+GET /knjige/_search
+{
+  "query": {
+    "range": {
+      "godina": { "gte": 1950 }
+    }
+  }
+}
+
+Bool 
+GET /knjige/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "opis": "roman" } }
+      ],
+      "filter": [
+        { "term": { "dostupno": true } },
+        { "range": { "cijena": { "lte": 22 } } }
+      ]
+    }
+  }
+}
+
+### Zadatak 4 — Bool query
+GET /knjige/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "opis": "roman" } }
+      ],
+      "filter": [
+        { "term": { "dostupno": true } },
+        { "range": { "cijena": { "lte": 22 } } }
+      ]
+    }
+  },
+  "sort": [
+    { "cijena": "asc" }
+  ]
+}
+
+### Korak 6 — Analyzer i tokenizacija
+POST /knjige/_analyze
+{
+  "analyzer": "hrvatski_analyzer",
+  "text": "Brzi smeđi most preko rijeke!"
+}
+
+### Zadatak 5 — Analyzer
+POST /knjige/_analyze
+{
+  "analyzer": "hrvatski_analyzer",
+  "text": "Na Drini ćuprija"
+}
+
+### Korak 7 — Agregacije
+GET /knjige/_search
+{
+  "size": 0,
+  "aggs": {
+    "knjige_po_autoru": {
+      "terms": { "field": "autor" }
+    }
+  }
+}
+
+GET /knjige/_search
+{
+  "size": 0,
+  "aggs": {
+    "po_zanru": {
+      "terms": { "field": "zanr" },
+      "aggs": {
+        "prosjecna_cijena": {
+          "avg": { "field": "cijena" }
+        }
+      }
+    }
+  }
+}
+
+
+### Zadatak 6 — Agregacije
+
+GET /knjige/_search
+{
+  "size": 0,
+  "aggs": {
+    "knjige_po_autoru": {
+      "terms": { "field": "autor" }
+    }
+  }
+}
+
+GET /knjige/_search
+{
+  "size": 0,
+  "aggs": {
+    "po_zanru": {
+      "terms": { "field": "zanr" },
+      "aggs": {
+        "prosjecna_cijena": {
+          "avg": { "field": "cijena" }
+        }
+      }
+    }
+  }
+}
+
+GET /knjige/_search
+{
+  "size": 0,
+  "aggs": {
+    "po_zanru": {
+      "terms": { "field": "zanr" },
+      "aggs": {
+        "najskuplja": {
+          "max": { "field": "cijena" }
+        }
+      }
+    }
+  }
+}
+
+GET /knjige/_search
+{
+  "size": 0,
+  "aggs": {
+    "po_dostupnosti": {
+      "terms": { "field": "dostupno" }
+    }
+  }
+}
+
+### Završni zadatak — vlastiti indeks filmovi
+
+PUT /filmovi
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "hrvatski_analyzer": {
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "naslov": {
+        "type": "text",
+        "analyzer": "hrvatski_analyzer",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "redatelj": { "type": "keyword" },
+      "zanr": { "type": "keyword" },
+      "opis": {
+        "type": "text",
+        "analyzer": "hrvatski_analyzer"
+      },
+      "godina": { "type": "integer" },
+      "ocjena": { "type": "double" },
+      "dostupno": { "type": "boolean" }
+    }
+  }
+}
+
+Unos 8 Filmova 
+POST /filmovi/_bulk
+{ "index": { "_id": "1" } }
+{ "naslov": "Inception", "redatelj": "Christopher Nolan", "zanr": "sci-fi", "opis": "Čovjek koji krade tajne iz snova suočava se s nemogućom misijom.", "godina": 2010, "ocjena": 8.8, "dostupno": true }
+{ "index": { "_id": "2" } }
+{ "naslov": "The Dark Knight", "redatelj": "Christopher Nolan", "zanr": "akcija", "opis": "Batman se suočava s Jokerom, kaotičnim kriminalcem bez pravila.", "godina": 2008, "ocjena": 9.0, "dostupno": true }
+{ "index": { "_id": "3" } }
+{ "naslov": "Interstellar", "redatelj": "Christopher Nolan", "zanr": "sci-fi", "opis": "Astronauti putuju kroz crnu rupu u potrazi za novim domom za čovječanstvo.", "godina": 2014, "ocjena": 8.6, "dostupno": true }
+{ "index": { "_id": "4" } }
+{ "naslov": "The Godfather", "redatelj": "Francis Ford Coppola", "zanr": "drama", "opis": "Priča o moćnoj mafijaškoj obitelji i borbi za vlast.", "godina": 1972, "ocjena": 9.2, "dostupno": false }
+{ "index": { "_id": "5" } }
+{ "naslov": "Pulp Fiction", "redatelj": "Quentin Tarantino", "zanr": "kriminal", "opis": "Isprepletene priče o kriminalcima, nasilju i slučajnostima u Los Angelesu.", "godina": 1994, "ocjena": 8.9, "dostupno": true }
+{ "index": { "_id": "6" } }
+{ "naslov": "Schindler's List", "redatelj": "Steven Spielberg", "zanr": "drama", "opis": "Istinita priča o čovjeku koji je spasio tisuće Zidova za vrijeme Holokausta.", "godina": 1993, "ocjena": 9.0, "dostupno": true }
+{ "index": { "_id": "7" } }
+{ "naslov": "The Matrix", "redatelj": "Lana Wachowski", "zanr": "sci-fi", "opis": "Haker otkriva da je stvarnost iluzija i pridružuje se borbi protiv strojeva.", "godina": 1999, "ocjena": 8.7, "dostupno": false }
+{ "index": { "_id": "8" } }
+{ "naslov": "Forrest Gump", "redatelj": "Robert Zemeckis", "zanr": "drama", "opis": "Priča jednostavnog čovjeka čiji život dodiruje važne trenutke američke povijesti.", "godina": 1994, "ocjena": 8.8, "dostupno": true }
+
+Match upit 
+GET /filmovi/_search
+{
+  "query": {
+    "match": {
+      "opis": "borba vlast"
+    }
+  }
+}
+
+Term upitž
+GET /filmovi/_search
+{
+  "query": {
+    "term": {
+      "redatelj": "Christopher Nolan"
+    }
+  }
+}
+
+Range upit 
+GET /filmovi/_search
+{
+  "query": {
+    "range": {
+      "ocjena": { "gte": 8.0 }
+    }
+  }
+}
+
+Bool upit 
+GET /filmovi/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "opis": "priča" } }
+      ],
+      "filter": [
+        { "term": { "dostupno": true } },
+        { "range": { "ocjena": { "gte": 7.0 } } }
+      ]
+    }
+  }
+}
+
+Agregacija
+
+GET /filmovi/_search
+{
+  "size": 0,
+  "aggs": {
+    "po_zanru": {
+      "terms": { "field": "zanr" },
+      "aggs": {
+        "prosjecna_ocjena": {
+          "avg": { "field": "ocjena" }
+        }
+      }
+    }
+  }
+}
+
