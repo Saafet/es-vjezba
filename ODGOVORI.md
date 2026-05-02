@@ -25,3 +25,52 @@ Jer indeks koristi hrvatski_analyzer s asciifolding filterom koji pretvara dijak
 
 2. pitanje:
 _score je mjera relevantnosti dokumenta za zadani upit, izračunata BM25 algoritmom. Uzima u obzir koliko često se pojam pojavljuje u dokumentu i koliko je rijedak u cijelom indeksu. Dokumenti koji sadrže traženi pojam vise puta ili u kracem tekstu dobivaju visi score.
+
+## Zadatak 5
+
+tokeni na drini cuprija
+{
+  "tokens": [
+    {
+      "token": "brzi",
+      "start_offset": 0,
+      "end_offset": 4,
+      "type": "<ALPHANUM>",
+      "position": 0
+    },
+    {
+      "token": "smedi",
+      "start_offset": 5,
+      "end_offset": 10,
+      "type": "<ALPHANUM>",
+      "position": 1
+    },
+    {
+      "token": "most",
+      "start_offset": 11,
+      "end_offset": 15,
+      "type": "<ALPHANUM>",
+      "position": 2
+    },
+    {
+      "token": "preko",
+      "start_offset": 16,
+      "end_offset": 21,
+      "type": "<ALPHANUM>",
+      "position": 3
+    },
+    {
+      "token": "rijeke",
+      "start_offset": 22,
+      "end_offset": 28,
+      "type": "<ALPHANUM>",
+      "position": 4
+    }
+  ]
+}
+
+2. pitanje;
+Pretvara sva slova u mala — Drini postaje drini. Bez ovoga bi pretraga drini ne ih pronašla Drini. Razlika od asciifolding: lowercase se bavi velikim/malim slovima, a asciifolding se bavi specijalnim znakovima.
+
+3. pitanje
+Bez analyzera Elasticsearch bi uspoređivao doslovne vrijednosti npr. Ćuprija i cuprija bili bi potpuno razliciti stringovi i pretraga ne bi radila. Analyzer normalizira i tekst dokumenta i tekst upita na isti nacin, pa pretraga funkcionira neovisno o dijakritikama velikim slovima ili interpunkciji.
